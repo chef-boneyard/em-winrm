@@ -1,0 +1,143 @@
+= EM-WinRM
+
+An EventMachine client for Windows Remote Management (WinRM). This allows you to invoke commands on Windows machines from any machine that can run Ruby.  This client leverages the EventMachine reactor to run the same command across multiple machines in parallel (think net-ssh-multi).
+
+WinRM allows you to call native object in Windows.  This includes, but is not limited to, running batch scripts, powershell scripts and fetching WMI variables.  For more information on WinRM, please visit (Microsoft's WinRM site[http://msdn.microsoft.com/en-us/library/aa384426(v=VS.85).aspx]).
+
+= Example Usage
+
+    servers = {
+      'ec2-75-xxx-xxx-127.compute-1.amazonaws.com' => {:port => 80, :user => 'Administrator', :password => 'super_secret_passowrd'},
+      'ec2-50-xxx-xxx-141.compute-1.amazonaws.com' => {:port => 80, :user => 'Administrator', :password => 'super_secret_passowrd'},
+      'ec2-75-xxx-xxx-192.compute-1.amazonaws.com' => {:port => 80, :user => 'Administrator', :password => 'super_secret_passowrd'}
+    }
+    
+    def h
+      @highline ||= HighLine.new
+    end
+    
+    def print_data(host, data, color = :cyan)
+      if data =~ /\n/
+          data.split(/\n/).each { |d| print_data(host, d, color) }
+      else
+        puts "#{h.color(host, color)} #{data.chomp}"
+      end
+    end
+    
+    # create a session
+    session = EventMachine::WinRM::Session.new(:log_level => :info)
+    
+    # add some servers
+    servers.each do |host,options|
+      session.use(host,options)
+    end
+    
+    # create some callbacks
+    session.on_output do |host, data|
+      print_data(host, data)
+    end
+    session.on_error do |host, err|
+      print_data(host, data, :red)
+    end
+    session.on_finish do |host|
+      host = host == :done ? 'All Servers' : host
+      print_data(host, 'done.')
+    end
+    
+    # run a command
+    session.relay_command('dir')
+
+Gives the following output:
+
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com  Volume in drive C has no label.
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com  Volume Serial Number is 9415-4101
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com  Directory of C:\Users\Administrator
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          .
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          ..
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Contacts
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Desktop
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Documents
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Downloads
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Favorites
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Links
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Music
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Pictures
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Saved Games
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Searches
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com 03/01/2011  03:30 AM    <DIR>          Videos
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com                0 File(s)              0 bytes
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com               13 Dir(s)  21,553,827,840 bytes free
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com  Volume in drive C has no label.
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com  Volume Serial Number is 9415-4101
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com  Directory of C:\Users\Administrator
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          .
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          ..
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Contacts
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Desktop
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Documents
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Downloads
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Favorites
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Links
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Music
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Pictures
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Saved Games
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Searches
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com 02/28/2011  06:13 PM    <DIR>          Videos
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com                0 File(s)              0 bytes
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com               13 Dir(s)  21,535,481,856 bytes free
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com  Volume in drive C has no label.
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com  Volume Serial Number is 9415-4101
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com  Directory of C:\Users\Administrator
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          .
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          ..
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Contacts
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Desktop
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Documents
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Downloads
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Favorites
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Links
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Music
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Pictures
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Saved Games
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Searches
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com 03/01/2011  01:17 AM    <DIR>          Videos
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com                0 File(s)              0 bytes
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com               13 Dir(s)  21,555,576,832 bytes free
+    ec2-75-xxx-xxx-192.compute-1.amazonaws.com done.
+    ec2-75-xxx-xxx-127.compute-1.amazonaws.com done.
+    ec2-50-xxx-xxx-141.compute-1.amazonaws.com done.
+    All Servers done.
+
+= Credit
+
+(Dan Wanek[http://github.com/zenchild]) who wrote (and modified) the (WinRM Ruby client gem[https://github.com/zenchild/WinRM]) that is used heavily in this gem.
+
+= Contact
+
+* Twitter: @schisamo
+* IRC: schisamo
+* Email: schisamo@opscode.com
+
+= License
+
+Author:: Seth Chisamore (<schisamo@opscode.com>)
+Copyright:: Copyright (c) 2011 Seth Chisamore
+License:: Apache License, Version 2.0
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
