@@ -20,6 +20,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "eventmachine", ">= 1.0.0.beta.2"
-  s.add_dependency "winrm", ">= 1.0.0rc1"
+  s.add_dependency "winrm", ">= 1.0.0rc2"
   s.add_dependency "mixlib-log", ">= 1.2.0"
 end
