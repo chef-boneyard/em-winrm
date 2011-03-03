@@ -88,12 +88,11 @@ module EventMachine
       def unbind_backend(host)
         WinRM::Log.debug(":unbind_backend => #{host}")
         @servers[host] = nil
+        @on_finish.call(host) if @on_finish
 
         if @servers.values.compact.size.zero?
           @on_finish.call(:done) if @on_finish
-          close
-        else
-          @on_finish.call(host) if @on_finish
+          close 
         end
       end
 
