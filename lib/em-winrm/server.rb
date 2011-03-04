@@ -26,10 +26,11 @@ module EventMachine
       def initialize(master, host, options)
         @master = master
         @host = host
-        @user = options[:user] || ENV['USER'] || ENV['USERNAME'] || "unknown"
-        @port = options[:port] || 5985
-        @password = options[:password]
         @transport = options[:transport] || :plaintext
+        @options = options
+        @options[:user] = @options.delete(:user) || ENV['USER'] || ENV['USERNAME'] || "unknown"
+        @options[:pass] = @options.delete(:password)
+        @options[:port] = @options.delete(:port) || 5985
       end
 
       #
@@ -68,9 +69,9 @@ module EventMachine
 
       def client
         @winrm ||= begin
-          http_method = ( @port.to_s=~/(443|5986)/ ? 'https' : 'http' )
-          endpoint = "#{http_method}://#{@host}:#{@port}/wsman"
-          ::WinRM::WinRMWebService.new(endpoint, @transport, {:user => @user, :pass => @password})
+          http_method = ( @options[:port].to_s=~/(443|5986)/ ? 'https' : 'http' )
+          endpoint = "#{http_method}://#{@host}:#{@options[:port]}/wsman"
+          ::WinRM::WinRMWebService.new(endpoint, @transport, @options)
         rescue ::WinRM::WinRMAuthorizationError => error
           raise ::WinRM::WinRMAuthorizationError.new("#{error.message}@#{@host}")
         end
