@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.add_dependency "eventmachine", ">= 1.0.0.beta.2"
   s.add_dependency "winrm", ">= 1.0.0rc2"
   s.add_dependency "mixlib-log", ">= 1.2.0"
+  s.add_dependency "uuidtools", ">= 2.1.1"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+require 'uuidtools'
+
 module EventMachine
   module WinRM
     class Server
@@ -37,6 +39,7 @@ module EventMachine
       # create a shell and run command
       #
       def run_command(data)
+        cid = UUIDTools::UUID.random_create.to_s
         EM.epoll
         EM.run do
           EM.defer(proc do
@@ -49,11 +52,12 @@ module EventMachine
               @master.relay_error_from_backend(@host, error)
             end
             @shell.on_close do |result|
-              unbind
+              @master.command_complete(@host, cid)
             end
             @shell.run_command(data)
           end)
         end
+        cid
       end
 
       #

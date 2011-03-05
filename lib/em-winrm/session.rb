@@ -23,7 +23,9 @@ module EventMachine
       ##### Proxy Methods
       def on_output(&blk); @on_output = blk; end
       def on_error(&blk); @on_error = blk; end
+      def on_command_complete(&blk); @on_command_complete = blk; end
       def on_finish(&blk); @on_finish = blk; end
+      def on_close(&blk); @on_close = blk; end
 
       def initialize(options={})
         if options[:logger]
@@ -33,6 +35,8 @@ module EventMachine
           WinRM::Log.level(log_level)
         end
         @servers = {}
+        @commands = []
+        WinRM::Log.debug(":session => :init")
       end
 
       #
@@ -46,7 +50,7 @@ module EventMachine
           servers.each do |s|
             operation = proc do
               WinRM::Log.debug(":relayed => #{s.host}")
-              s.run_command(data)
+              @commands << s.run_command(data)
             end
             EM.defer(operation)
           end
@@ -57,8 +61,35 @@ module EventMachine
       # initialize connections to a server
       #
       def use(host, options)
-        srv = Server.new(self, host, options)
-        @servers[host] = srv
+        @servers[host] = Server.new(self, host, options)
+      end
+
+      #
+      # return an array of the current servers in the session
+      #
+      def servers
+        @servers.values
+      end
+
+      #
+      # set the current servers in the session
+      #
+      def servers=(servers)
+        @servers = {}
+        servers.each{|s| @servers[s.host] = s}
+      end
+
+      #
+      # returns a new EventMachine::WinRM::Session instance
+      # consisting of a specific sub-set of servers
+      #
+      # inspired by Net::SSH::Multi::Session.on
+      #
+      def on(*new_servers)
+        subsession = self.clone
+        subsession.servers = new_servers & servers
+        yield subsession if block_given?
+        subsession
       end
 
       #
@@ -77,6 +108,19 @@ module EventMachine
         data = @on_error.call(host, data) if @on_error
       end
 
+      #
+      # called by backend server when it completes a command
+      #
+      def command_complete(host, cid)
+        WinRM::Log.debug(":command_complete => #{host}")
+        @commands.delete(cid)
+        @on_command_complete.call(host) if @on_command_complete
+        if @commands.compact.size.zero?
+          @on_command_complete.call(:all) if @on_command_complete
+          EM.stop
+        end
+      end
+
       def unbind
         WinRM::Log.debug(":unbind => :connection")
         # terminate any unfinished connections
@@ -89,10 +133,8 @@ module EventMachine
         WinRM::Log.debug(":unbind_backend => #{host}")
         @servers[host] = nil
         @on_finish.call(host) if @on_finish
-
         if @servers.values.compact.size.zero?
-          @on_finish.call(:done) if @on_finish
-          close 
+          @on_finish.call(:all) if @on_finish
         end
       end
 
@@ -102,7 +144,10 @@ module EventMachine
       #
       def close
         unbind
-        EM.stop
+        # try to stop eventmachine loop
+        EM.stop rescue
+        @on_close.call if @on_close
+        WinRM::Log.debug(":session => :close")
       end
     end
   end
