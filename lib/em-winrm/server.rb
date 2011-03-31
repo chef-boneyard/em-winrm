@@ -33,6 +33,7 @@ module EventMachine
         @options[:user] = @options.delete(:user) || ENV['USER'] || ENV['USERNAME'] || "unknown"
         @options[:pass] = @options.delete(:password)
         @options[:port] = @options.delete(:port) || 5985
+        @options[:basic_auth_only] = @options.delete(:basic_auth_only) || true
       end
 
       #
