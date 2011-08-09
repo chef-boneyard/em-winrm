@@ -76,7 +76,9 @@ module EventMachine
         @winrm ||= begin
           http_method = ( @options[:port].to_s=~/(443|5986)/ ? 'https' : 'http' )
           endpoint = "#{http_method}://#{@host}:#{@options[:port]}/wsman"
-          ::WinRM::WinRMWebService.new(endpoint, @transport, @options)
+          client = ::WinRM::WinRMWebService.new(endpoint, @transport, @options)
+          client.set_timeout(@options[:operation_timeout]) if @options[:operation_timeout]
+          client
         rescue ::WinRM::WinRMAuthorizationError => error
           raise ::WinRM::WinRMAuthorizationError.new("#{error.message}@#{@host}")
         end
