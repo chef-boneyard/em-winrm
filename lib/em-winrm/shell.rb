@@ -59,13 +59,14 @@ module EventMachine
       def run_command(command)
         command_id = client.run_command(@remote_id, command)
         WinRM::Log.debug("#{server.host}[#{@remote_id}] => :run_command[#{command}]")
-        client.get_command_output(@remote_id, command_id) do |out,error|
+        output=client.get_command_output(@remote_id, command_id) do |out,error|
           @out_channel.push(out) if out
           @err_channel.push(error) if error
         end
         client.cleanup_command(@remote_id, command_id)
         WinRM::Log.debug("#{server.host}[#{@remote_id}] => :command_cleanup[#{command}]")
         close
+        output[:exitcode]
       end
 
       #
