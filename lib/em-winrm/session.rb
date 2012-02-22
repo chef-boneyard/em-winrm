@@ -20,6 +20,7 @@ module EventMachine
   module WinRM
     class Session
 
+      attr_reader :exit_codes
       ##### Proxy Methods
       def on_output(&blk); @on_output = blk; end
       def on_error(&blk); @on_error = blk; end
@@ -36,6 +37,7 @@ module EventMachine
         end
         @servers = {}
         @commands = []
+        @exit_codes = {}
         WinRM::Log.debug(":session => :init")
       end
 
@@ -111,10 +113,11 @@ module EventMachine
       #
       # called by backend server when it completes a command
       #
-      def command_complete(host, cid)
-        WinRM::Log.debug(":command_complete => #{host}")
+      def command_complete(host, cid,exit_code)
+        WinRM::Log.debug(":command_complete => #{host} with return code #{exit_code}")
         @commands.delete(cid)
         @on_command_complete.call(host) if @on_command_complete
+        @exit_codes[host] = exit_code
         if @commands.compact.size.zero?
           @on_command_complete.call(:all) if @on_command_complete
           EM.stop
