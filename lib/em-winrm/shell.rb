@@ -65,6 +65,7 @@ module EventMachine
         end
         client.cleanup_command(@remote_id, command_id)
         WinRM::Log.debug("#{server.host}[#{@remote_id}] => :command_cleanup[#{command}]")
+        @last_exit_code = output[:exitcode]
         close
         output[:exitcode]
       end
@@ -75,7 +76,7 @@ module EventMachine
       def close
         r = client.close_shell(@remote_id)
         WinRM::Log.debug("#{server.host}[#{@remote_id}] => :shell_close")
-        @on_close.call(r) if @on_close
+        @on_close.call(r,@last_exit_code) if @on_close
       end
     end
   end

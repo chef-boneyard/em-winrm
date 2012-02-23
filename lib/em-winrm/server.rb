@@ -52,8 +52,8 @@ module EventMachine
             @shell.on_error do |error|
               @master.relay_error_from_backend(@host, error)
             end
-            @shell.on_close do |result|
-              @master.command_complete(@host, cid)
+            @shell.on_close do |result, exit_code|
+              @master.command_complete(@host, cid, exit_code)
             end
             @shell.run_command(data)
           end)
