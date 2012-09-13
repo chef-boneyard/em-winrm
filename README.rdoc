@@ -136,6 +136,9 @@ world testing and features!
 * IRC: schisamo
 * Email: schisamo@opscode.com
 
+* Github: https://github.com/opscode/em-winrm
+* Tickets: http://tickets.opscode.com # knife-windows project
+
 = License
 
 Author:: Seth Chisamore (<schisamo@opscode.com>)
