@@ -18,7 +18,7 @@
 
 module EventMachine
   module WinRM
-    VERSION = "0.5.4.rc.1"
+    VERSION = "0.5.5"
     MAJOR, MINOR, TINY = VERSION.split('.')
   end
 end

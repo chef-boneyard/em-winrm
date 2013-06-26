@@ -34,6 +34,7 @@ module EventMachine
         @options[:pass] = @options.delete(:password)
         @options[:port] = @options.delete(:port) || 5985
         @options[:basic_auth_only] = true unless defined? @options[:basic_auth_only]
+        @options[:no_ssl_peer_verification] = false unless defined? @options[:no_ssl_peer_verification]
       end
 
       #
