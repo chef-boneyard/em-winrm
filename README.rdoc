@@ -123,7 +123,7 @@ Gives the following output:
 = Credit
 
 Thanks to {Dan Wanek}[http://github.com/zenchild] who wrote the
-{WinRM Ruby client gem}[https://github.com/zenchild/WinRM] that is used heavily
+{WinRM Ruby client gem}[https://github.com/WinRb/WinRM] that is used heavily
 by this gem.
 
 Also big thanks to {Paul Morton}[https://github.com/pmorton] and
