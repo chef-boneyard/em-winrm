@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.description = s.summary
 
   s.required_ruby_version	= '>= 1.9.1'
-  s.add_dependency "eventmachine", "= 1.0.0.beta.3"
+  s.add_dependency "eventmachine", "= 1.0.3"
   s.add_dependency "winrm", "~> 1.1.0"
   s.add_dependency "mixlib-log", ">= 1.3.0"
   s.add_dependency "uuidtools", "~> 2.1.1"
