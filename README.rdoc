@@ -10,6 +10,11 @@ limited to, running batch scripts, powershell scripts and fetching WMI variables
 For more information on WinRM, please visit
 {Microsoft's WinRM site}[http://msdn.microsoft.com/en-us/library/aa384426(v=VS.85).aspx].
 
+= Deprecation Notice
+
+The functionality provided by this library has been merged into {knife-windows}[https://github.com/chef/knife-windows].
+Following the release of knife-windows v1.0.0, this library will no longer be used and thus no longer be maintained.
+
 = Example Usage
 
     servers = {
