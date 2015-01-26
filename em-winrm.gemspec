@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/schisamo/em-winrm"
   s.summary     = %q{EventMachine based, asynchronous parallel WinRM client}
   s.description = s.summary
+  s.license = "Apache-2.0"
 
   s.required_ruby_version	= '>= 1.9.1'
   s.add_dependency "eventmachine", "~> 1.0.0"
