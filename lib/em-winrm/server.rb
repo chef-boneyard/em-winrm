@@ -75,7 +75,7 @@ module EventMachine
 
       def client
         @winrm ||= begin
-          http_method = ( @options[:port].to_s=~/(443|5986)/ ? 'https' : 'http' )
+          http_method = ((@transport == :ssl) || @options[:port].to_s=~/(443|5986)/) ? 'https' : 'http' 
           endpoint = "#{http_method}://#{@host}:#{@options[:port]}/wsman"
           client = ::WinRM::WinRMWebService.new(endpoint, @transport, @options)
           client.set_timeout(@options[:operation_timeout]) if @options[:operation_timeout]
